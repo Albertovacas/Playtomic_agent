@@ -2,3 +2,4 @@ chromedriver-mac-x64/
 .DS_Store
 .env
 __pycache__
+__old/
