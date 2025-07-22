@@ -141,15 +141,8 @@ def calcular_fecha_fin(fecha_inicio, match_duration):
     dur = timedelta(minutes=match_duration)
     end = start + dur
     return end.strftime(fmt)
-        
-def click_select_and_choose(wait, actions, selector_control, text):
-    ctl = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector_control)))
-    actions.move_to_element(ctl).click().perform()
-    opt = wait.until(EC.element_to_be_clickable(
-        (By.XPATH, f"//div[contains(@class,'select__option') and text()='{text}']")))
-    opt.click()
     
-def check_is_correct_date(driver,wait,day_reservation,days_to_check=7):
+def check_is_correct_schedule_date(driver,wait,day_reservation,days_to_check=7):
     
     for _ in range(days_to_check):
     
@@ -177,6 +170,32 @@ def check_reservation_exists(reservation_df, day_reservation, fecha_inicio, fech
     
     return is_any_match
 
+def check_is_within_schedule(fecha_inicio, fecha_fin):
+    
+    OPENING_HOUR = 8 * 60 + 30  # 08:30 in minutes
+    CLOSING_HOUR = 22 * 60      # 22:00 in minutes
+    
+    start_minutes = datetime.strptime(fecha_inicio, "%H:%M").hour * 60 + datetime.strptime(fecha_inicio, "%H:%M").minute
+    end_minutes = datetime.strptime(fecha_fin, "%H:%M").hour * 60 + datetime.strptime(fecha_fin, "%H:%M").minute
+    
+    return OPENING_HOUR <= start_minutes < CLOSING_HOUR and OPENING_HOUR < end_minutes <= CLOSING_HOUR
+
+def check_is_valid_date(day_reservation, fecha_inicio, current_datetime=None):
+    
+    current_datetime = current_datetime or datetime.now()
+    
+    reservation_datetime = datetime.strptime(f"{day_reservation} {fecha_inicio}", "%d-%m-%Y %H:%M")
+    delta_days = (reservation_datetime.date() - current_datetime.date()).days
+
+    return reservation_datetime >= current_datetime and delta_days <= 14
+
+
+def click_select_and_choose(wait, actions, selector_control, text):
+    ctl = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector_control)))
+    actions.move_to_element(ctl).click().perform()
+    opt = wait.until(EC.element_to_be_clickable(
+        (By.XPATH, f"//div[contains(@class,'select__option') and text()='{text}']")))
+    opt.click()
 
 def click_on_select_hour(driver,actions,fecha_inicio):
     fecha_intermedio = calcular_fecha_fin(fecha_inicio, 15)
